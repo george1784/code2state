@@ -1,0 +1,32 @@
+apiVersion: appmesh.k8s.aws/v1beta1
+kind: VirtualNode
+metadata:
+  name: api-test-front
+  namespace: api-test-ns
+spec:
+  meshName: global
+  listeners:
+    - portMapping:
+        port: 80
+        protocol: http
+  serviceDiscovery:
+    dns:
+      hostName: api-test-front.api-test-ns.svc.cluster.local
+  backends:
+    - virtualService:
+        virtualServiceName: api-test-back.api-test-ns.svc.cluster.local
+---
+apiVersion: appmesh.k8s.aws/v1beta1
+kind: VirtualNode
+metadata:
+  name: api-test-back
+  namespace: api-test-ns
+spec:
+  meshName: global
+  listeners:
+    - portMapping:
+        port: 80
+        protocol: http
+  serviceDiscovery:
+    dns:
+      hostName: api-test-back.api-test-ns.svc.cluster.local

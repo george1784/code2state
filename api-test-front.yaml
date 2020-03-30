@@ -1,0 +1,35 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  labels:
+    app: api-test-front
+  name: api-test-front
+  namespace: api-test-ns
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-test-front
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: api-test-front
+    spec:
+      containers:
+      - image: 664320496234.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
+        imagePullPolicy: Always
+        name: api-test-front
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources: {}
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 1337
+      terminationGracePeriodSeconds: 30

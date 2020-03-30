@@ -1,0 +1,83 @@
+
+
+Install Java editor with maven support, in my case Eclipse.
+Install docker 
+Install aws cli
+Install kubectl and point to AWS instance (https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
+Install helm (for MAC: brew install kubernetes-helm)
+Install terraform 
+
+-- Inside Terraform/eks
+
+terraform init
+terraform apply
+
+
+-- CDR, aws mesh and side car injectors creation
+
+helm repo add eks https://aws.github.io/eks-charts
+kubectl create ns appmesh-system
+kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/appmesh-controller/crds/crds.yaml
+helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system
+helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set mesh.create=true --set mesh.name=global
+
+-- X-ray tracing
+helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set tracing.enabled=true --set tracing.provider=x-ray
+
+
+-- namespace labeling for sidecar injection
+kubectl label namespace api-test-ns appmesh.k8s.aws/sidecarInjectorWebhook=enabled
+
+
+-- Install ALB ingress controller to generate automatic ALB with ingress deployment 
+curl -sS "https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.5/docs/examples/alb-ingress-controller.yaml" \
+     | sed "s/# - --cluster-name=devCluster/- --cluster-name=terraform-eks-demo/g" \
+     | kubectl apply -f -
+
+
+
+-- Docker creation 
+mvn clean -Denv.DOCKER_IMAGE=api-test-front install
+mvn clean -Denv.DOCKER_IMAGE=api-test-back install
+
+
+Tag and Push docker images to ECR Registry 
+-- 
+docker tag api-test-front 664320496234.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
+docker push 664320496234.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
+
+
+--Commands to depoy in EKS
+
+-- Backend EKS deployment (inside code2statebkend)
+ kubectl apply -f api-test-back.yaml
+ 
+-- Backend EKS deployment (inside codestate)
+ kubectl apply -f api-test-front.yaml 
+ 
+-- EKS Services (inside codestate)
+ kubectl apply -f services.yaml
+
+-- EKS Ingress for frontend (inside codestate)
+ kubectl apply -f ingress.yaml 
+
+-- EKS Virtual Services for sidecar interception and redirection  (inside codestate)
+ kubectl apply -f virtualservices.yaml
+
+-- EKS Virtual Services for sidecar destination 
+ kubectl apply -f virtualnodes.yaml 
+ 
+ 
+ 
+ 
+ 
+-- Inside envoy to see statistics
+
+kubectl exec -it <pod name> -n<namespace> -c envoy bash
+ 
+curl http://localhost:9901/stats
+
+
+
+
+
