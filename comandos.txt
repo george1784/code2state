@@ -43,8 +43,8 @@ mvn clean -Denv.DOCKER_IMAGE=api-test-back install
 
 Tag and Push docker images to ECR Registry 
 -- 
-docker tag api-test-front 664320496234.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
-docker push 664320496234.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
+docker tag api-test-front <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
+docker push <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
 
 
 --Commands to depoy in EKS
