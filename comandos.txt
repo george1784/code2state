@@ -24,19 +24,33 @@ helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --s
 -- X-ray tracing
 helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set tracing.enabled=true --set tracing.provider=x-ray
 
+kubectl create -f https://eksworkshop.com/x-ray/daemonset.files/xray-k8s-daemonset.yaml
 
--- namespace labeling for sidecar injection
-kubectl label namespace api-test-ns appmesh.k8s.aws/sidecarInjectorWebhook=enabled
+--test
+
+kubectl describe daemonset xray-daemon
 
 
 -- Install ALB ingress controller to generate automatic ALB with ingress deployment 
-curl -sS "https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.5/docs/examples/alb-ingress-controller.yaml" \
+curl -sS "https://raw.githubusercontent.com/kubernetes-sigs/aws-alb-ingress-controller/v1.1.6/docs/examples/alb-ingress-controller.yaml" \
      | sed "s/# - --cluster-name=devCluster/- --cluster-name=terraform-eks-demo/g" \
      | kubectl apply -f -
 
 
+-- install fluentd for logging 
 
--- Docker creation 
+
+kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/cloudwatch-namespace.yaml
+
+kubectl create configmap cluster-info --from-literal=cluster.name=terraform-eks-demo --from-literal=logs.region=us-east-1 -n amazon-cloudwatch
+
+kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch-container-insights/latest/k8s-deployment-manifest-templates/deployment-mode/daemonset/container-insights-monitoring/fluentd/fluentd.yaml
+
+-- test
+
+kubectl get all -n amazon-cloudwatch
+
+cker creation 
 mvn clean -Denv.DOCKER_IMAGE=api-test-front install
 mvn clean -Denv.DOCKER_IMAGE=api-test-back install
 
@@ -47,7 +61,14 @@ docker tag api-test-front <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks
 docker push <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
 
 
---Commands to depoy in EKS
+--Commands to deploy in EKS
+
+-- Namespace creation
+ kubectl apply -f namespace.yaml
+
+-- namespace labeling for sidecar injection
+kubectl label namespace api-test-ns appmesh.k8s.aws/sidecarInjectorWebhook=enabled
+
 
 -- Backend EKS deployment (inside code2statebkend)
  kubectl apply -f api-test-back.yaml
@@ -58,8 +79,11 @@ docker push <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-
 -- EKS Services (inside codestate)
  kubectl apply -f services.yaml
 
--- EKS Ingress for frontend (inside codestate)
+
+ -- EKS Ingress for frontend (inside codestate)
  kubectl apply -f ingress.yaml 
+
+
 
 -- EKS Virtual Services for sidecar interception and redirection  (inside codestate)
  kubectl apply -f virtualservices.yaml
@@ -67,7 +91,33 @@ docker push <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-
 -- EKS Virtual Services for sidecar destination 
  kubectl apply -f virtualnodes.yaml 
  
- 
+
+ -- install prometheus and graphana
+
+helm repo add stable https://kubernetes-charts.storage.googleapis.com
+
+kubectl create ns prometheus
+
+helm install prometheus  stable/prometheus -f prometheus-values.yaml --namespace prometheus
+
+helm install grafana  stable/grafana -f grafana-values.yaml --namespace prometheus
+
+Need to use ModHeader to override Host Header and add host: chart-example.com
+
+
+-- delete prometheus if desired
+
+helm delete prometheus --namespace prometheus
+helm delete grafana --namespace prometheus
+kubectl delete namespace prometheus
+kubectl delete crd alertmanagers.monitoring.coreos.com
+kubectl delete crd podmonitors.monitoring.coreos.com
+kubectl delete crd prometheuses.monitoring.coreos.com
+kubectl delete crd prometheusrules.monitoring.coreos.com
+kubectl delete crd servicemonitors.monitoring.coreos.com
+
+
+-- Do
  
  
  
@@ -78,6 +128,6 @@ kubectl exec -it <pod name> -n<namespace> -c envoy bash
 curl http://localhost:9901/stats
 
 
+-- delete psp if locked in grafana or prometheus
 
-
-
+sh delete_others_prometheus.sh // change after "grep" the name of the chart installed to be deleted (actually in example sh my-release)

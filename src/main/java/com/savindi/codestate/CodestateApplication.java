@@ -21,7 +21,7 @@ public class CodestateApplication {
 	
 	// Creates logger
 	final static Logger logger = LogManager.getLogger(CodestateApplication.class);
-    public static final String serverUrl = "http://api-test-back.svc.cluster.local";
+    public static final String serverUrl = "http://api-test-back.api-test-ns.svc.cluster.local";
    
 
     public static void main(String[] args) {
