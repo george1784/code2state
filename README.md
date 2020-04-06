@@ -9,16 +9,21 @@ X-Ray, Prometheus / Graphana
 
 
 Install Java editor with maven support, in my case Eclipse.
+
 Install docker 
+
 Install aws cli
+
 Install kubectl and point to AWS instance (https://docs.aws.amazon.com/eks/latest/userguide/create-kubeconfig.html)
 Install helm (for MAC: brew install kubernetes-helm)
+
 Install terraform 
 
 -- Inside Terraform/eks
 -
 
 terraform init
+
 terraform apply
 
 
@@ -26,9 +31,13 @@ terraform apply
 -
 
 helm repo add eks https://aws.github.io/eks-charts
+
 kubectl create ns appmesh-system
+
 kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/appmesh-controller/crds/crds.yaml
+
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system
+
 helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set mesh.create=true --set mesh.name=global
 
 -- X-ray tracing
@@ -78,12 +87,14 @@ kubectl get apiservice v1beta1.metrics.k8s.io -o yaml
 --Docker creation 
 -
 mvn clean -Denv.DOCKER_IMAGE=api-test-front install
+
 mvn clean -Denv.DOCKER_IMAGE=api-test-back install
 
 
 -- Tag and Push docker images to ECR Registry 
 -
 docker tag api-test-front <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
+
 docker push <cuenta>.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
 
 
@@ -158,12 +169,19 @@ http://<alb-url>.elb.amazonaws.com/ - user: admin pass:strongPassword*
 -- delete prometheus if desired
 -
 helm delete prometheus --namespace prometheus
+
 helm delete grafana --namespace prometheus
+
 kubectl delete namespace prometheus
+
 kubectl delete crd alertmanagers.monitoring.coreos.com
+
 kubectl delete crd podmonitors.monitoring.coreos.com
+
 kubectl delete crd prometheuses.monitoring.coreos.com
+
 kubectl delete crd prometheusrules.monitoring.coreos.com
+
 kubectl delete crd servicemonitors.monitoring.coreos.com
 
 
