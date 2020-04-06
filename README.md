@@ -64,6 +64,17 @@ kubectl apply -f https://raw.githubusercontent.com/aws-samples/amazon-cloudwatch
 
 kubectl get all -n amazon-cloudwatch
 
+-- Install metrics
+-
+
+helm install metrics-server stable/metrics-server --version 2.9.0  --namespace metrics --set args="{--logtostderr,--kubelet-insecure-tls,--kubelet-preferred-address-types=InternalIP\,ExternalIP\,Hostname}"
+
+-- test
+
+kubectl get apiservice v1beta1.metrics.k8s.io -o yaml
+
+
+
 --Docker creation 
 -
 mvn clean -Denv.DOCKER_IMAGE=api-test-front install
@@ -110,12 +121,12 @@ kubectl apply -f services.yaml
 -
 kubectl apply -f virtualservices.yaml
 
--- EKS Virtual Services for sidecar destination 
+-- EKS Virtual Services for sidecar destination (inside codestate)
 -
 kubectl apply -f virtualnodes.yaml 
  
 
--- Install prometheus and graphana
+-- Install Prometheus and Grafana
 -
 helm repo add stable https://kubernetes-charts.storage.googleapis.com
 
@@ -158,16 +169,5 @@ kubectl delete crd servicemonitors.monitoring.coreos.com
 
 sh delete_others_prometheus.sh // change after "grep" the name of the chart installed to be deleted (actually in example sh my-release)
 
--- Do
- 
- 
- 
--- Inside envoy to see statistics
 
-kubectl exec -it <pod name> -n<namespace> -c envoy bash
- 
-curl http://localhost:9901/stats
-
-
--- delete psp if locked in grafana or prometheus
 
