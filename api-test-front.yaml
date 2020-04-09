@@ -23,6 +23,9 @@ spec:
       - image: 664320496234.dkr.ecr.us-east-1.amazonaws.com/terraform-eks-demo-ecr:api-test-front
         imagePullPolicy: Always
         name: api-test-front
+        env:
+        - name: AWS_XRAY_DAEMON_ADDRESS 
+          value: xray-service.default
         ports:
         - containerPort: 80
           protocol: TCP

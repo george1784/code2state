@@ -6,9 +6,10 @@ kubectl delete crd virtualnodes.appmesh.k8s.aws
 
 kubectl delete crd virtualservices.appmesh.k8s.aws
 
-helm delete appmesh-inject eks/appmesh-inject
 
-helm delete appmesh-controller eks/appmesh-controller
+helm delete appmesh-controller --namespace appmesh-system
+
+helm delete appmesh-inject --namespace appmesh-system
 
 kubectl label namespace api-test-ns appmesh.k8s.aws/sidecarInjectorWebhook=disabled --overwrite=true
 

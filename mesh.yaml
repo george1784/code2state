@@ -1,5 +1,5 @@
 apiVersion: appmesh.k8s.aws/v1beta1
 kind: Mesh
 metadata:
-  name: api-test
+  name: global
 #kubectl label namespace api-test-ns appmesh.k8s.aws/sidecarInjectorWebhook=enabled
