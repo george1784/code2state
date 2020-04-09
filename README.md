@@ -27,7 +27,10 @@ terraform init
 terraform apply
 
 
--- CDR, aws mesh and side car injectors creation
+aws eks --region us-east-1 update-kubeconfig --name terraform-eks-demo
+
+
+-- CDR, -- X-ray tracing, aws mesh and side car injectors creation
 -
 
 helm repo add eks https://aws.github.io/eks-charts
@@ -38,12 +41,9 @@ kubectl apply -f https://raw.githubusercontent.com/aws/eks-charts/master/stable/
 
 helm upgrade -i appmesh-controller eks/appmesh-controller --namespace appmesh-system
 
-helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set mesh.create=true --set mesh.name=global
+ helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set tracing.enabled=true --set tracing.provider=x-ray --set mesh.create=true --set mesh.name=global
 
--- X-ray tracing
--
-
-helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system --set tracing.enabled=true --set tracing.provider=x-ray
+#helm upgrade -i appmesh-inject eks/appmesh-inject --namespace appmesh-system  --set mesh.create=true --set mesh.name=global
 
 kubectl create -f https://eksworkshop.com/x-ray/daemonset.files/xray-k8s-daemonset.yaml
 
@@ -75,6 +75,7 @@ kubectl get all -n amazon-cloudwatch
 
 -- Install metrics
 -
+kubectl create ns metrics
 
 helm install metrics-server stable/metrics-server --version 2.9.0  --namespace metrics --set args="{--logtostderr,--kubelet-insecure-tls,--kubelet-preferred-address-types=InternalIP\,ExternalIP\,Hostname}"
 
@@ -174,15 +175,15 @@ helm delete grafana --namespace prometheus
 
 kubectl delete namespace prometheus
 
-kubectl delete crd alertmanagers.monitoring.coreos.com
+#kubectl delete crd alertmanagers.monitoring.coreos.com
 
-kubectl delete crd podmonitors.monitoring.coreos.com
+#kubectl delete crd podmonitors.monitoring.coreos.com
 
-kubectl delete crd prometheuses.monitoring.coreos.com
+#kubectl delete crd prometheuses.monitoring.coreos.com
 
-kubectl delete crd prometheusrules.monitoring.coreos.com
+#kubectl delete crd prometheusrules.monitoring.coreos.com
 
-kubectl delete crd servicemonitors.monitoring.coreos.com
+#kubectl delete crd servicemonitors.monitoring.coreos.com
 
 
 sh delete_others_prometheus.sh // change after "grep" the name of the chart installed to be deleted (actually in example sh my-release)
