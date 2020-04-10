@@ -162,6 +162,18 @@ http://<alb-url>.elb.amazonaws.com/ - user: admin pass:strongPassword*
 
 
 
+-- Canary deployment
+-
+Once everything is created you can run a new scenario where a new version of the backend is deployed and in a canary deployment this new version will receive 10% of all traffic
+
+
+For that:
+
+sh delete_all.sh
+
+sh create_all_canary.sh
+
+
 --OTHERS
 -
 

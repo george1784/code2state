@@ -1,0 +1,41 @@
+apiVersion: appmesh.k8s.aws/v1beta1
+kind: VirtualService
+metadata:
+  name: api-test-front.api-test-ns.svc.cluster.local
+  namespace: api-test-ns
+spec:
+  meshName: global
+  virtualRouter:
+    name: api-test-front-router
+  routes:
+    - name: api-test-front-route
+      http:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+            - virtualNodeName: api-test-front
+              weight: 100
+
+---
+apiVersion: appmesh.k8s.aws/v1beta1
+kind: VirtualService
+metadata:
+  name: api-test-back.api-test-ns.svc.cluster.local
+  namespace: api-test-ns
+spec:
+  meshName: global
+  virtualRouter:
+    name: api-test-back-router
+  routes:
+    - name: api-test-back-route
+      http:
+        match:
+          prefix: /
+        action:
+          weightedTargets:
+            - virtualNodeName: api-test-back-v1
+              weight: 10
+            - virtualNodeName: api-test-back
+              weight: 90
+

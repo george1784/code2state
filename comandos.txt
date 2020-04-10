@@ -51,6 +51,8 @@ kubectl create -f https://eksworkshop.com/x-ray/daemonset.files/xray-k8s-daemons
 
 kubectl describe daemonset xray-daemon
 
+kubectl logs -l app=xray-daemon
+
 
 -- Install ALB ingress controller to generate automatic ALB with ingress deployment 
 -
